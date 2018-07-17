@@ -3,14 +3,17 @@ package com.burnweb.rnsendintent;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.ComponentName;
+import android.content.pm.PackageManager;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 import android.net.Uri;
 import android.telephony.TelephonyManager;
 import android.content.Context;
+import android.support.v4.content.FileProvider;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -417,12 +420,33 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
 
           try (final ResponseBody body = response.body()) {
             saveFile(body);
+            String apkMime = "application/vnd.android.package-archive";
 
-            final Intent intent = new Intent(Intent.ACTION_VIEW)
-                                  .setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (Build.VERSION.SDK_INT >= 24){
+                // Get uri for file using FileProvider
+                Uri uriForFile = FileProvider.getUriForFile(getCurrentActivity(),
+                        reactContext.getPackageName() + ".provider", file);
 
-            reactContext.startActivity(intent);
+                // Create the intent with data and type
+                final Intent intent = new Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(uriForFile, apkMime);
+
+                // Set flag to give temporary permission to external app to use FileProvider
+                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                // Validate that the device can open the file
+                PackageManager pm = getCurrentActivity().getPackageManager();
+                if (intent.resolveActivity(pm) != null) {
+                    reactContext.startActivity(intent);
+                }
+            } else {
+                final Intent intent = new Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(Uri.fromFile(file), apkMime);
+
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                reactContext.startActivity(intent);
+            }
 
             promise.resolve(true);
           }
