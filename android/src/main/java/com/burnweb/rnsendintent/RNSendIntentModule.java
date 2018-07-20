@@ -459,6 +459,46 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void installApp(final String apkName, final Promise promise) {
+        final File file = new File(this.reactContext.getExternalFilesDir(null), apkName);
+
+        try {
+            String apkMime = "application/vnd.android.package-archive";
+
+            if (Build.VERSION.SDK_INT >= 24){
+                // Get uri for file using FileProvider
+                Uri uriForFile = FileProvider.getUriForFile(getCurrentActivity(),
+                        reactContext.getPackageName() + ".provider", file);
+
+                // Create the intent with data and type
+                final Intent intent = new Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(uriForFile, apkMime);
+
+                // Set flag to give temporary permission to external app to use FileProvider
+                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                // Validate that the device can open the file
+                PackageManager pm = getCurrentActivity().getPackageManager();
+                if (intent.resolveActivity(pm) != null) {
+                    reactContext.startActivity(intent);
+                }
+            } else {
+                final Intent intent = new Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(Uri.fromFile(file), apkMime);
+
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                reactContext.startActivity(intent);
+            }
+
+            promise.resolve(true);
+        } catch (final Exception e) {
+            e.printStackTrace();
+            promise.resolve(false);
+        }
+    }
+
+    @ReactMethod
     public void openApp(String packageName, ReadableMap extras, final Promise promise) {
         Intent sendIntent = this.reactContext.getPackageManager().getLaunchIntentForPackage(packageName);
         if (sendIntent == null) {

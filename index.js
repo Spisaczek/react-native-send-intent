@@ -41,6 +41,9 @@ var SendIntentAndroid = {
     installRemoteApp(uri, saveAs) {
         return RNSendIntentAndroid.installRemoteApp(uri, saveAs);
     },
+    installApp(apkName) {
+        return RNSendIntentAndroid.installApp(apkName);
+    },
     openCalendar() {
         RNSendIntentAndroid.openCalendar();
     },
