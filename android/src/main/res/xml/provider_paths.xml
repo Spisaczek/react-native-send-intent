@@ -2,4 +2,6 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-path name="external_files" path="."/>
     <files-path name="files-path" path="." /> <!-- Used to access into application data files -->
+    <files-path name="files" path="/"/>
+    <files-path name="my_apks" path="apks/" />
 </paths>

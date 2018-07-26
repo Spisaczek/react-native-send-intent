@@ -460,7 +460,7 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void installApp(final String apkName, final Promise promise) {
-        final File file = new File(this.reactContext.getExternalFilesDir(null), apkName);
+        final File file = new File(this.reactContext.getFilesDir(), apkName);
 
         try {
             String apkMime = "application/vnd.android.package-archive";
